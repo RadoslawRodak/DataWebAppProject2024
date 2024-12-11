@@ -15,17 +15,6 @@
 
   <h1>Update Student</h1>
 
-  <!-- Displaying error messages -->
-  <% if (errors.length > 0) { %>
-    <div>
-      <ul>
-        <% errors.forEach((error) => { %>
-          <li><%= error %></li>
-        <% }) %>
-      </ul>
-    </div>
-  <% } %>
-
   <div class="container">
     <form action="/students/edit/<%= student.sid %>" method="POST">
       <div>

@@ -6,29 +6,34 @@
   <title>Add Student</title>
 </head>
 <body>
-  <nav>
-    <a href="/">Home</a>
-  </nav>
-
+  <!-- Home Link -->
   <div>
-    <h1>Add Student</h1>
-    <form action="/students/add" method="POST">
-      <!-- Show error message if any -->
-      <% if (error) { %>
-        <p style="color:red;"><%= error %></p>
-      <% } %>
-
-      <label for="sid">Student ID:</label>
-      <input type="text" id="sid" name="sid" value="<%= sid %>"><br><br>
-
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" value="<%= name %>"><br><br>
-
-      <label for="age">Age:</label>
-      <input type="number" id="age" name="age" value="<%= age %>"><br><br>
-
-      <button type="submit">Add Student</button>
-    </form>
+    <a href="/">Home</a>
   </div>
+
+  <h1>Add Student</h1>
+
+  
+
+  <form action="/students/add" method="POST">
+    <div>
+      <label for="sid">Student ID</label>
+      <input type="text" id="sid" name="sid" value="<%= sid %>" required>
+    </div>
+
+    <div>
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" value="<%= name %>" required>
+    </div>
+
+    <div>
+      <label for="age">Age</label>
+      <input type="number" id="age" name="age" value="<%= age %>" required>
+    </div>
+
+    <div>
+      <button type="submit">Add Student</button>
+    </div>
+  </form>
 </body>
 </html>

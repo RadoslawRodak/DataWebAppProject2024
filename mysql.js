@@ -15,10 +15,6 @@ const getStudents = () => {
         .then(([rows, fields]) => {
             return rows;  // Return the student data (rows)
         })
-        .catch((error) => {
-            console.log(error);
-            throw error;  // Throw the error if any
-        });
 };
 
 // Function to get a specific student by sid (returns a promise)
@@ -27,10 +23,6 @@ const getStudentBySid = (sid) => {
         .then(([rows, fields]) => {
             return rows[0];  // Return the first result (only one student expected)
         })
-        .catch((error) => {
-            console.log(error);
-            throw error;  // Throw the error if any
-        });
 };
 
 // Function to update a student's details (returns a promise)
@@ -43,10 +35,6 @@ const updateStudent = (sid, updatedData) => {
     .then(([results]) => {
         return results;  // Return the results of the update query
     })
-    .catch((error) => {
-        console.log(error);
-        throw error;  // Throw the error if any
-    });
 };
 
 
@@ -60,10 +48,6 @@ const addStudent = (studentData) => {
   .then(([results]) => {
       return results;
   })
-  .catch((error) => {
-      console.log(error);
-      throw error;
-  });
 };
 
 // Export the functions to be used in other files
