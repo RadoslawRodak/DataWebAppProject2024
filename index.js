@@ -2,6 +2,7 @@ const express = require("express");
 const {  getStudents,  getStudentBySid,  updateStudent,  addStudent,  getGradesData} = require("./mysql"); // Import the functions from mysql.js
 const app = express();
 const bodyParser = require("body-parser");
+const { getLecturers, deleteLecturer } = require("./mongodb"); // Import MongoDB functions
 const port = 3004;
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -12,24 +13,51 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Homepage (GET /)
 app.get("/", (req, res) => {
   res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Home Page</title>
-        </head>
-        <body>
-            <h1>G00417413</h1>
-            <nav>
-                <ul>
-                    <li><a href="/students">Students</a></li>
-                    <li><a href="/grades">Grades</a></li>                   
-                </ul>
-            </nav>
-        </body>
-        </html>
-    `);
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Home Page</title>
+    </head>
+    <body>
+        <h1>Welcome to the Database Management</h1>
+        <nav>
+            <ul>
+                <li><a href="/students">Students</a></li>
+                <li><a href="/grades">Grades</a></li>
+                <li><a href="/lecturers">Lecturers</a></li>
+            </ul>
+        </nav>
+    </body>
+    </html>
+  `);
+});
+
+// Lecturers page (GET /lecturers)
+// Route to get all lecturers from MongoDB
+app.get("/lecturers", async (req, res) => {
+  try {
+    const collection = await getLecturersCollection(); // Get the lecturers collection
+    const lecturers = await collection.find({}).sort({ lecturerId: 1 }).toArray(); // Sort by lecturerId alphabetically
+    res.render("lecturers", { lecturers });
+  } catch (error) {
+    console.error("Error fetching lecturers:", error);
+    res.status(500).send("Error fetching lecturers");
+  }
+});
+
+// Route to delete a lecturer (POST /lecturers/delete/:id)
+app.post("/lecturers/delete/:id", (req, res) => {
+  const lecturerId = req.params.id;
+  deleteLecturer(lecturerId)
+    .then(() => {
+      res.redirect("/lecturers"); // Redirect back to lecturers list after deletion
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("Error deleting lecturer");
+    });
 });
 
 // Route to display students in the browser
