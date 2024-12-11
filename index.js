@@ -6,7 +6,9 @@ const port = 3004;
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-app.use(bodyParser.urlencoded({ extended: true }));  // Use body-parser to handle URL-encoded data
+// Middleware to parse form data
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 // Homepage (GET /)
 app.get('/', (req, res) => {
@@ -47,29 +49,45 @@ app.get('/students', (req, res) => {
 
 // Route to display the update form for a specific student
 app.get('/update-student/:sid', (req, res) => {
-    const sid = req.params.sid; // sid instead of id
-  
+    const sid = req.params.sid;
     getStudentBySid(sid) // Fetch student by sid
       .then((student) => {
-        res.render('update-student', { student }); // Render the update form with student data
+        if (!student) {
+          return res.status(404).send('Student not found');
+        }
+        res.render('update-student', { student, errors: [] });
       })
-      .catch((error) => {
-        res.status(500).send("Error fetching student details");
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send('Error fetching student details.');
       });
   });
   
   // Route to handle the form submission and update the student
   app.post('/update-student/:sid', (req, res) => {
-    const sid = req.params.sid; // sid from URL
-    const { name, age } = req.body; // Get the updated data from the form
+    const sid = req.params.sid;  // Get the SID from the URL
+    const { name, age } = req.body;  // Get the new name and age from the form input
   
-    updateStudent(sid, { name, age }) // Call the function to update the database
+    // Validation logic
+    let errors = [];
+    if (!name || name.length < 2) {
+      errors.push('Student Name should be at least 2 characters');
+    }
+    if (!age || age < 18) {
+      errors.push('Student Age should be at least 18');
+    }
+  
+    // If validation fails, re-render the form with errors
+    if (errors.length > 0) {
+      return res.render('update-student', { student: { sid, name, age }, errors });
+    }
+  
+    // If validation passes, update the student in the database
+    updateStudent(sid, { name, age })
       .then(() => {
-        res.redirect('/students'); // Redirect back to the students list after update
+        res.redirect('/students');  // Redirect to the students list after update
       })
-      .catch((error) => {
-        res.status(500).send("Error updating student details");
-      });
+      .catch(err => res.status(500).send('Error updating student details'));
   });
 
 
