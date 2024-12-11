@@ -1,6 +1,6 @@
 const express = require("express");
 const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData, getModulesByLecturerId } = require("./mysql");
-const { getLecturers, deleteLecturerFromMongoDB } = require("./mongodb"); // Import MongoDB functions
+const { getLecturers, deleteLecturerById } = require("./mongodb"); // Import MongoDB functions
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -58,27 +58,19 @@ app.get("/lecturers/delete/:id", async (req, res) => {
   const lecturerId = req.params.id;
 
   try {
-    // Check if the lecturer is teaching any modules in MySQL
+    // Check if the lecturer is teaching any modules
     const modules = await getModulesByLecturerId(lecturerId);
 
     if (modules.length > 0) {
-      // If the lecturer is teaching modules, prevent deletion and show modules
+      // If the lecturer is teaching modules, prevent deletion
       const moduleNames = modules.map(module => module.name).join(", ");
       res.render("lecturers", {
-        lecturers: await getLecturers(),  // Refresh lecturer list
-        errorMessage: `This lecturer is teaching the following module(s): ${moduleNames}. Cannot delete lecturer.`,
+        lecturers: await getLecturers(),
+        errorMessage: `This lecturer is teaching the following module(s): ${moduleNames}. Cannot delete lecturer.`
       });
     } else {
       // If no modules are found, proceed with deletion
-      await deleteLecturerFromMySQL(lecturerId);  // Delete lecturer from MySQL
-
-      // Optionally, delete from MongoDB as well (if you want)
-      const resultMongo = await deleteLecturerFromMongoDB(lecturerId);  // Delete lecturer from MongoDB
-      if (resultMongo) {
-        console.log(`Lecturer ${lecturerId} successfully deleted from MongoDB.`);
-      }
-
-      // After successful deletion, redirect to the list of lecturers
+      await deleteLecturerById(lecturerId);
       res.redirect("/lecturers");
     }
   } catch (error) {

@@ -25,21 +25,25 @@ const getLecturers = () => {
   };
 
 // Function to delete a lecturer from MongoDB by ID
-const deleteLecturerFromMongoDB = (lecturerId) => {
-  return new Promise((resolve, reject) => {
-    getLecturers()
-      .deleteOne({ _id: lecturerId })  // Delete lecturer by ID
-      .then((result) => {
-        if (result.deletedCount === 1) {
-          resolve(true);  // Lecturer deleted successfully
-        } else {
-          resolve(false);  // Lecturer not found
-        }
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+const deleteLecturerById = async (lecturerId) => {
+    if (!db) {
+      console.error("MongoDB is not connected.");
+      return;
+    }
+
+    const lecturersCollection = db.collection("lecturers"); // Use existing connection
+
+    try {
+      // Delete lecturer by ID
+      const result = await lecturersCollection.deleteOne({ _id: lecturerId });
+      if (result.deletedCount === 0) {
+        throw new Error("Lecturer not found or already deleted");
+      }
+      console.log("Lecturer deleted successfully");
+    } catch (err) {
+      console.error("Error deleting lecturer from MongoDB:", err);
+      throw err; // Propagate error to handle it elsewhere if needed
+    }
 };
 
-module.exports = { getLecturers, deleteLecturerFromMongoDB };
+module.exports = { getLecturers, deleteLecturerById };
