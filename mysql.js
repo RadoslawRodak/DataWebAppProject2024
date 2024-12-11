@@ -10,7 +10,7 @@ const pool = mysql.createPool({
 });
 
 // Function to get all students
-var getStudents = function () {
+const getStudents = function () {
   return new Promise((resolve, reject) => {
     pool.query("SELECT * FROM student", (error, results) => {
       if (error) {

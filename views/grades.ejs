@@ -46,9 +46,9 @@
         <tr>
           <td><%= record.student_name %></td>
           <td>
-            <%= record.module_name ? record.module_name : "Not Enrolled" %>
+            <%= record.module_name ? record.module_name : "" %>
           </td>
-          <td><%= record.grade ? record.grade : "N/A" %></td>
+          <td><%= record.grade ? record.grade : "" %></td>
         </tr>
         <% }); %> <% } else { %>
         <tr>
