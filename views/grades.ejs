@@ -1,29 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grades Page</title>
-</head>
-<body>
-  <h1>Grades Page</h1>
-  <nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grades</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- Add a CSS file if needed -->
+    <style>
+      table {
+        width: auto;
+        margin: 2px 0;
+        border: 3px double black;
+        border-collapse: separate;
+        border-spacing: 1px; /* Add spacing between cells */
+      }
+
+      th,
+      td {
+        padding: 1px; /* Adjust padding for individual cells */
+        text-align: left;
+        font-size: 14px;
+        white-space: nowrap;
+        border: 1px solid black; /* Single border for individual cells */
+      }
+
+      th {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Grades Page</h1>
     <a href="/">Home</a>
-  </nav>
-  
-  <ul>
-    <% for (let student in gradesData) { %>
-      <li>
-        <strong><%= student %></strong>
-        <ul>
-          <% gradesData[student].forEach(record => { %>
-            <li>
-              <%= record.module %>: <%= record.grade %>
-            </li>
-          <% }); %>
-        </ul>
-      </li>
-    <% } %>
-  </ul>
-</body>
+    <!-- Link to the Home page -->
+    <table>
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Module Name</th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (grades.length > 0) { %> <% grades.forEach(record => { %>
+        <tr>
+          <td><%= record.student_name %></td>
+          <td>
+            <%= record.module_name ? record.module_name : "Not Enrolled" %>
+          </td>
+          <td><%= record.grade ? record.grade : "N/A" %></td>
+        </tr>
+        <% }); %> <% } else { %>
+        <tr>
+          <td colspan="3">No grades data available</td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </body>
 </html>

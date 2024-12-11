@@ -145,24 +145,12 @@ app.post("/students/add", async (req, res) => {
 
 app.get("/grades", (req, res) => {
   getGradesData()
-    .then((results) => {
-      // Group the results by student name for easier rendering
-      const gradesData = results.reduce((acc, row) => {
-        if (!acc[row.student_name]) {
-          acc[row.student_name] = [];
-        }
-        acc[row.student_name].push({
-          module: row.module_name || "No Modules", // Show "No Modules" if null
-          grade: row.grade || "No Grade", // Show "No Grade" if null
-        });
-        return acc;
-      }, {});
-
-      res.render("grades", { gradesData });
+    .then((grades) => {
+      res.render("grades", { grades }); // Pass the grades data to the template
     })
     .catch((err) => {
-      console.error("Error fetching grades:", err);
-      res.status(500).send("Internal Server Error");
+      console.error("Error fetching grades data:", err);
+      res.status(500).send("Error fetching grades data.");
     });
 });
 
