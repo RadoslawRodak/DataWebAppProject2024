@@ -1,10 +1,5 @@
 const express = require("express");
-const {
-  getStudents,
-  getStudentBySid,
-  updateStudent,
-  addStudent,
-} = require("./mysql"); // Import the functions from mysql.js
+const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData} = require("./mysql"); // Import the functions from mysql.js
 const app = express();
 const bodyParser = require("body-parser");
 const port = 3004;
@@ -97,49 +92,78 @@ app.post("/students/edit/:sid", (req, res) => {
     .catch((err) => res.status(500).send("Error updating student details"));
 });
 
-// Route to render the Add Student form
+// Route to render the Add Student form (GET)
 app.get("/students/add", (req, res) => {
   res.render("add-student", {
-    sid: "", // Empty string for a new student
+    sid: "", // Empty string for SID for new student
     name: "", // Empty string for name
     age: "", // Empty string for age
-    errors: [], // Empty errors array initially
+    errors: [], // Empty error initially
   });
 });
 
-// Handle the Add Student form submission
-// Example: POST route for adding a student
-app.post('/students/add', (req, res) => {
-  const { sid, name, age } = req.body;  // Get form data from req.body
+// POST route to handle Add Student
+app.post("/students/add", async (req, res) => {
+  const { sid, name, age } = req.body || {};
   const errors = [];
 
-  // Validate form data
-  if (!sid || sid.length !== 4) {
-    errors.push('Student ID must be exactly 4 characters.');
+  // Validation
+  if (!sid || typeof sid !== "string" || sid.length !== 4) {
+    errors.push("Student ID must be exactly 4 characters.");
   }
-  if (!name || name.length < 2) {
-    errors.push('Name must be at least 2 characters.');
+  if (!name || typeof name !== "string" || name.length < 2) {
+    errors.push("Name must be at least 2 characters.");
   }
-  if (!age || age < 18) {
-    errors.push('Age must be 18 or older.');
+  if (!age || isNaN(Number(age)) || Number(age) < 18) {
+    errors.push("Age must be 18 or older.");
   }
 
-  // If there are validation errors, render the form again with errors
   if (errors.length > 0) {
-    return res.render('add-student', { sid, name, age, errors });
+    return res.render("add-student", { sid, name, age, errors });
   }
 
-  // If no errors, insert the student data into the database
-  addStudent.query('INSERT INTO student (sid, name, age) VALUES (?, ?, ?)', [sid, name, age], (err, results) => {
-    if (err) {
-      console.log('Database Error:', err);
-      errors.push('Error adding student. Please try again.');
-      return res.render('add-student', { sid, name, age, errors });
+  try {
+    // Add the new student
+    await addStudent(sid, { name, age: Number(age) }); // Ensure age is a number
+    res.redirect("/students");
+  } catch (err) {
+    console.log("Error adding student:", err);
+
+    // Handle duplicate entry error
+    if (err.code === "ER_DUP_ENTRY") {
+      errors.push("A student with this ID already exists.");
+    } else {
+      errors.push(
+        "An error occurred while adding the student. Please try again."
+      );
     }
-    
-    // If student is added successfully, redirect to students list
-    res.redirect('/students');
-  });
+
+    // Re-render the form with errors and previously entered data
+    res.render("add-student", { sid, name, age, errors });
+  }
+});
+
+app.get("/grades", (req, res) => {
+  getGradesData()
+    .then((results) => {
+      // Group the results by student name for easier rendering
+      const gradesData = results.reduce((acc, row) => {
+        if (!acc[row.student_name]) {
+          acc[row.student_name] = [];
+        }
+        acc[row.student_name].push({
+          module: row.module_name || "No Modules", // Show "No Modules" if null
+          grade: row.grade || "No Grade", // Show "No Grade" if null
+        });
+        return acc;
+      }, {});
+
+      res.render("grades", { gradesData });
+    })
+    .catch((err) => {
+      console.error("Error fetching grades:", err);
+      res.status(500).send("Internal Server Error");
+    });
 });
 
 // Start the Express server
