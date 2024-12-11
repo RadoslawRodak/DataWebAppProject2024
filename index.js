@@ -1,9 +1,12 @@
 const express = require('express');
-const { getStudents } = require('./mysql'); // Import the getStudents function
+const { getStudents, getStudentBySid, updateStudent } = require('./mysql'); // Import the getStudents function
 const app = express();
+const bodyParser = require('body-parser')
 const port = 3004;
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
+
+app.use(bodyParser.urlencoded({ extended: true }));  // Use body-parser to handle URL-encoded data
 
 // Homepage (GET /)
 app.get('/', (req, res) => {
@@ -20,6 +23,7 @@ app.get('/', (req, res) => {
             <nav>
                 <ul>
                     <li><a href="/students">Students</a></li>
+                    <li><a href="/grades">Grades</a></li>                   
                 </ul>
             </nav>
         </body>
@@ -39,6 +43,34 @@ app.get('/students', (req, res) => {
             console.error(err);
         });
 });
+
+
+// Route to display the update form for a specific student
+app.get('/update-student/:sid', (req, res) => {
+    const sid = req.params.sid; // sid instead of id
+  
+    getStudentBySid(sid) // Fetch student by sid
+      .then((student) => {
+        res.render('update-student', { student }); // Render the update form with student data
+      })
+      .catch((error) => {
+        res.status(500).send("Error fetching student details");
+      });
+  });
+  
+  // Route to handle the form submission and update the student
+  app.post('/update-student/:sid', (req, res) => {
+    const sid = req.params.sid; // sid from URL
+    const { name, age } = req.body; // Get the updated data from the form
+  
+    updateStudent(sid, { name, age }) // Call the function to update the database
+      .then(() => {
+        res.redirect('/students'); // Redirect back to the students list after update
+      })
+      .catch((error) => {
+        res.status(500).send("Error updating student details");
+      });
+  });
 
 
 // Start the Express server

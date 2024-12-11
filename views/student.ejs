@@ -14,20 +14,31 @@
       text-align: left;
       margin-bottom: 15px;
     }
-   
-    table {
-      border-collapse: separate;
-      border-spacing: 1px;
-      margin: 10px 0;
-      width: auto;
+
+    /* Container for the links */
+    .nav-links {
+      display: flex;
+      flex-direction: column; /* Stack links vertically */
+      gap: 1px; /* Space between links */
     }
+
+    /* Style for the table */
+    table {
+      width: auto;
+      margin: 2px 0;
+      border: 3px double black; /* Double border around the whole table */
+      border-collapse: separate; /* Prevent cells from collapsing into each other */
+      border-spacing: 1px; /* Add spacing between cells */
+    }
+
     th, td {
-      border: 3px double black;
-      padding: 5px;
+      padding: 1px; /* Adjust padding for individual cells */
       text-align: center;
       font-size: 14px;
       white-space: nowrap;
+      border: 1px solid black; /* Single border for individual cells */
     }
+
     th {
       font-weight: bold;
     }
@@ -36,8 +47,10 @@
 <body>
   <h1>Students</h1>
   <nav>
-    <a href="/add-student">Add Student</a>
-    <a href="/">Home</a>
+    <div class="nav-links">
+      <a href="/add-student">Add Student</a> <!-- Add Student link -->
+      <a href="/">Home</a> <!-- Home link -->
+    </div>
   </nav>
   <table>
     <thead>
@@ -45,14 +58,16 @@
         <th>Student ID</th>
         <th>Name</th>
         <th>Age</th>
+        <th>Actions</th> <!-- Added actions column for the update link -->
       </tr>
     </thead>
     <tbody>
-      <% students.forEach(student => { %> <!-- Changed from 'student' to 'students' -->
+      <% students.forEach(student => { %>
         <tr>
           <td><%= student.sid %></td>
           <td><%= student.name %></td>
           <td><%= student.age %></td>
+          <td><a href="/update-student/<%= student.sid %>">Update</a></td> <!-- Update link -->
         </tr>
       <% }); %>
     </tbody>
