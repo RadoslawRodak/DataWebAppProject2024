@@ -2,7 +2,7 @@ const express = require("express");
 const {  getStudents,  getStudentBySid,  updateStudent,  addStudent,  getGradesData} = require("./mysql"); // Import the functions from mysql.js
 const app = express();
 const bodyParser = require("body-parser");
-const { getLecturers, deleteLecturer } = require("./mongodb"); // Import MongoDB functions
+const { getLecturers, deleteLecturer } = require("./mongodb");
 const port = 3004;
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -34,11 +34,10 @@ app.get("/", (req, res) => {
   `);
 });
 
-// Lecturers page (GET /lecturers)
-// Route to get all lecturers from MongoDB
 app.get("/lecturers", async (req, res) => {
   try {
-    const collection = await getLecturersCollection(); // Get the lecturers collection
+    // Ensure you're getting the correct collection from MongoDB
+    const collection = await getLecturers(); // Use the correct function to fetch lecturers
     const lecturers = await collection.find({}).sort({ lecturerId: 1 }).toArray(); // Sort by lecturerId alphabetically
     res.render("lecturers", { lecturers });
   } catch (error) {
@@ -47,19 +46,27 @@ app.get("/lecturers", async (req, res) => {
   }
 });
 
-// Route to delete a lecturer (POST /lecturers/delete/:id)
-app.post("/lecturers/delete/:id", (req, res) => {
-  const lecturerId = req.params.id;
-  deleteLecturer(lecturerId)
-    .then(() => {
-      res.redirect("/lecturers"); // Redirect back to lecturers list after deletion
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).send("Error deleting lecturer");
-    });
-});
+// Route to handle deleting a lecturer by lecturerId (MongoDB)
+app.get("/lecturers/delete/:lecturerId", async (req, res) => {
+  const { lecturerId } = req.params;
+  console.log("Lecturer ID received for deletion:", lecturerId);
 
+  try {
+    const deleteResult = await deleteLecturer(lecturerId);
+    console.log("Delete Result:", deleteResult);
+
+    if (deleteResult.success) {
+      res.redirect("/lecturers"); // Redirect to the lecturers page after deletion
+    } else {
+      // If deletion fails, show the error message and list lecturers
+      const lecturers = await getLecturers().find({}).sort({ _id: 1 }).toArray();
+      res.render("lecturers", { lecturers, errorMessage: deleteResult.message || "An error occurred" });
+    }
+  } catch (error) {
+    console.error("Error deleting lecturer:", error);
+    res.status(500).send("Error deleting lecturer");
+  }
+});
 // Route to display students in the browser
 app.get("/students", (req, res) => {
   getStudents()

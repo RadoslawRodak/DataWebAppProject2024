@@ -1,47 +1,5 @@
 const mysql = require("mysql");
 
-const { MongoClient } = require("mongodb");
-// MongoDB connection URL
-const url = "mongodb://localhost:27017";
-const dbName = "proj2024MongoDB";
-let db;
-
-// Connect to MongoDB
-MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then((client) => {
-    db = client.db(dbName);
-    console.log("Connected to MongoDB");
-  })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
-  });
-
-const getLecturers = () => {
-  return new Promise((resolve, reject) => {
-    const collection = db.collection("lecturers");
-    collection
-      .find({})
-      .sort({ lecturer_id: 1 }) // Sorting alphabetically by lecturer_id
-      .toArray((err, lecturers) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(lecturers);
-        }
-      });
-  });
-};
-
-const deleteLecturer = (lecturerId) => {
-  return new Promise((resolve, reject) => {
-    const collection = db.collection("lecturers");
-    collection
-      .deleteOne({ lecturer_id: lecturerId })
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
-};
-
 // Create the connection pool
 const pool = mysql.createPool({
   connectionLimit: 3,
@@ -143,4 +101,4 @@ const getGradesData = () => {
 };
 
 // Export functions for use in other parts of the app
-module.exports = {getStudents, getStudentBySid, addStudent, updateStudent, getGradesData, getLecturers, deleteLecturer};
+module.exports = { getStudents, getStudentBySid, addStudent, updateStudent, getGradesData };
