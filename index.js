@@ -1,8 +1,9 @@
 const express = require("express");
-const {  getStudents,  getStudentBySid,  updateStudent,  addStudent,  getGradesData} = require("./mysql"); // Import the functions from mysql.js
-const app = express();
+const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData, getModulesByLecturerId } = require("./mysql");
+const { getLecturers, deleteLecturerFromMongoDB } = require("./mongodb"); // Import MongoDB functions
 const bodyParser = require("body-parser");
-const { getLecturers, deleteLecturer } = require("./mongodb");
+
+const app = express();
 const port = 3004;
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
@@ -34,45 +35,63 @@ app.get("/", (req, res) => {
   `);
 });
 
+// Route to display lecturers
 app.get("/lecturers", async (req, res) => {
   try {
-    // Ensure you're getting the correct collection from MongoDB
-    const collection = await getLecturers(); // Use the correct function to fetch lecturers
-    const lecturers = await collection.find({}).sort({ lecturerId: 1 }).toArray(); // Sort by lecturerId alphabetically
-    res.render("lecturers", { lecturers });
+    // Fetch lecturers from MongoDB
+    const lecturers = await getLecturers();
+    console.log("Lecturers fetched from MongoDB:", lecturers);  // Debugging output
+
+    if (lecturers && lecturers.length > 0) {
+      res.render("lecturers", { lecturers }); // Pass lecturers to the view
+    } else {
+      res.render("lecturers", { lecturers: [], errorMessage: "No lecturers found." });
+    }
   } catch (error) {
     console.error("Error fetching lecturers:", error);
     res.status(500).send("Error fetching lecturers");
   }
 });
 
-// Route to handle deleting a lecturer by lecturerId (MongoDB)
-app.get("/lecturers/delete/:lecturerId", async (req, res) => {
-  const { lecturerId } = req.params;
-  console.log("Lecturer ID received for deletion:", lecturerId);
+// Route to handle lecturer deletion
+app.get("/lecturers/delete/:id", async (req, res) => {
+  const lecturerId = req.params.id;
 
   try {
-    const deleteResult = await deleteLecturer(lecturerId);
-    console.log("Delete Result:", deleteResult);
+    // Check if the lecturer is teaching any modules in MySQL
+    const modules = await getModulesByLecturerId(lecturerId);
 
-    if (deleteResult.success) {
-      res.redirect("/lecturers"); // Redirect to the lecturers page after deletion
+    if (modules.length > 0) {
+      // If the lecturer is teaching modules, prevent deletion and show modules
+      const moduleNames = modules.map(module => module.name).join(", ");
+      res.render("lecturers", {
+        lecturers: await getLecturers(),  // Refresh lecturer list
+        errorMessage: `This lecturer is teaching the following module(s): ${moduleNames}. Cannot delete lecturer.`,
+      });
     } else {
-      // If deletion fails, show the error message and list lecturers
-      const lecturers = await getLecturers().find({}).sort({ _id: 1 }).toArray();
-      res.render("lecturers", { lecturers, errorMessage: deleteResult.message || "An error occurred" });
+      // If no modules are found, proceed with deletion
+      await deleteLecturerFromMySQL(lecturerId);  // Delete lecturer from MySQL
+
+      // Optionally, delete from MongoDB as well (if you want)
+      const resultMongo = await deleteLecturerFromMongoDB(lecturerId);  // Delete lecturer from MongoDB
+      if (resultMongo) {
+        console.log(`Lecturer ${lecturerId} successfully deleted from MongoDB.`);
+      }
+
+      // After successful deletion, redirect to the list of lecturers
+      res.redirect("/lecturers");
     }
   } catch (error) {
-    console.error("Error deleting lecturer:", error);
-    res.status(500).send("Error deleting lecturer");
+    console.error("Error handling deletion:", error);
+    res.status(500).send("Error handling deletion");
   }
 });
-// Route to display students in the browser
+
+// Route to display students
 app.get("/students", (req, res) => {
   getStudents()
     .then((students) => {
-      // Render 'student.ejs' with the fetched students data
-      res.render("student", { students: students });
+      res.render("student", { students });
     })
     .catch((err) => {
       res.status(500).send("Error fetching students");
@@ -94,10 +113,9 @@ app.get("/students/edit/:sid", (req, res) => {
 
 // Route to handle the form submission and update the student
 app.post("/students/edit/:sid", (req, res) => {
-  const sid = req.params.sid; // Get the SID from the URL
-  const { name, age } = req.body; // Get the new name and age from the form input
+  const sid = req.params.sid;
+  const { name, age } = req.body;
 
-  // Validation logic
   let errors = [];
   if (!name || name.length < 2) {
     errors.push("Student Name should be at least 2 characters");
@@ -106,28 +124,18 @@ app.post("/students/edit/:sid", (req, res) => {
     errors.push("Student Age should be at least 18");
   }
 
-  // If validation fails, re-render the form with errors
   if (errors.length > 0) {
-    return res.render("update-student", {
-      student: { sid, name, age },
-      errors,
-    });
+    return res.render("update-student", { student: { sid, name, age }, errors });
   }
 
-  // If validation passes, update the student in the database
   updateStudent(sid, { name, age }).then(() => {
-    res.redirect("/students"); // Redirect to the students list after update
+    res.redirect("/students");
   });
 });
 
 // Route to render the Add Student form (GET)
 app.get("/students/add", (req, res) => {
-  res.render("add-student", { // empty strings for Add Student info
-    sid: "", 
-    name: "", 
-    age: "", 
-    errors: [],
-  });
+  res.render("add-student", { sid: "", name: "", age: "", errors: [] });
 });
 
 // POST route to handle Add Student
@@ -135,7 +143,6 @@ app.post("/students/add", async (req, res) => {
   const { sid, name, age } = req.body || {};
   const errors = [];
 
-  // Validation
   if (!sid || typeof sid !== "string" || sid.length !== 4) {
     errors.push("Student ID must be exactly 4 characters.");
   }
@@ -151,33 +158,27 @@ app.post("/students/add", async (req, res) => {
   }
 
   try {
-    // Add the new student
-    await addStudent(sid, { name, age: Number(age) }); // Ensure age is a number
+    await addStudent(sid, { name, age: Number(age) });
     res.redirect("/students");
   } catch (err) {
     console.log("Error adding student:", err);
-
-    // Handle duplicate entry error
     if (err.code === "ER_DUP_ENTRY") {
       errors.push("A student with this ID already exists.");
     } else {
-      errors.push(
-        "An error occurred while adding the student. Please try again."
-      );
+      errors.push("An error occurred while adding the student. Please try again.");
     }
-
-    // Re-render the form with errors and previously entered data
     res.render("add-student", { sid, name, age, errors });
   }
 });
 
+// Route to display grades
 app.get("/grades", (req, res) => {
   getGradesData().then((grades) => {
-    res.render("grades", { grades }); // Pass the grades data to the template
+    res.render("grades", { grades });
   });
 });
 
-// Start the Express server
+// Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
