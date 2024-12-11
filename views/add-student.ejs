@@ -13,7 +13,16 @@
 
   <h1>Add Student</h1>
 
-  
+  <!-- Displaying error messages -->
+  <% if (errors && errors.length > 0) { %>
+    <div>
+      <ul>
+        <% errors.forEach((error) => { %>
+          <li><%= error %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
 
   <form action="/students/add" method="POST">
     <div>

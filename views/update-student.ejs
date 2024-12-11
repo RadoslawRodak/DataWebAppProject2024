@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Update Student</title>
-  <style>
-    
-  </style>
 </head>
 <body>
   <div class="home-link">
@@ -14,6 +11,17 @@
   </div>
 
   <h1>Update Student</h1>
+
+  <!-- Displaying error messages -->
+  <% if (errors && errors.length > 0) { %>
+    <div class="error">
+      <ul>
+        <% errors.forEach((error) => { %>
+          <li><%= error %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
 
   <div class="container">
     <form action="/students/edit/<%= student.sid %>" method="POST">
@@ -33,7 +41,7 @@
       </div>
 
       <div>
-        <button type="submit">Add</button>
+        <button type="submit">Update</button>
       </div>
     </form>
   </div>

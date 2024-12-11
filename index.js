@@ -4,7 +4,7 @@ const {
   getStudentBySid,
   updateStudent,
   addStudent,
-} = require("./mysql"); // Import the getStudents function
+} = require("./mysql"); // Import the functions from mysql.js
 const app = express();
 const bodyParser = require("body-parser");
 const port = 3004;
@@ -103,78 +103,42 @@ app.get("/students/add", (req, res) => {
     sid: "", // Empty string for a new student
     name: "", // Empty string for name
     age: "", // Empty string for age
-    error: "", // Empty error initially
+    errors: [], // Empty errors array initially
   });
 });
 
-app.post("/students/add", (req, res) => {
-  const { sid, name, age } = req.body;
+// Handle the Add Student form submission
+// Example: POST route for adding a student
+app.post('/students/add', (req, res) => {
+  const { sid, name, age } = req.body;  // Get form data from req.body
+  const errors = [];
 
-  // Validation checks
+  // Validate form data
   if (!sid || sid.length !== 4) {
-    return res.render("add-student", {
-      sid: sid,
-      name: name,
-      age: age,
-      error: "Student ID must be 4 characters long.",
-    });
+    errors.push('Student ID must be exactly 4 characters.');
   }
-
   if (!name || name.length < 2) {
-    return res.render("add-student", {
-      sid: sid,
-      name: name,
-      age: age,
-      error: "Name must be at least 2 characters long.",
-    });
+    errors.push('Name must be at least 2 characters.');
   }
-
   if (!age || age < 18) {
-    return res.render("add-student", {
-      sid: sid,
-      name: name,
-      age: age,
-      error: "Age must be 18 or older.",
-    });
+    errors.push('Age must be 18 or older.');
   }
 
-  // Proceed with adding the student (check if sid already exists, etc.)
-  // If no error, perform the insert and redirect or render success message
-  pool.query("SELECT * FROM student WHERE sid = ?", [sid], (err, results) => {
+  // If there are validation errors, render the form again with errors
+  if (errors.length > 0) {
+    return res.render('add-student', { sid, name, age, errors });
+  }
+
+  // If no errors, insert the student data into the database
+  addStudent.query('INSERT INTO student (sid, name, age) VALUES (?, ?, ?)', [sid, name, age], (err, results) => {
     if (err) {
-      return res.render("add-student", {
-        sid: sid,
-        name: name,
-        age: age,
-        error: "Database error. Please try again.",
-      });
+      console.log('Database Error:', err);
+      errors.push('Error adding student. Please try again.');
+      return res.render('add-student', { sid, name, age, errors });
     }
-
-    if (results.length > 0) {
-      return res.render("add-student", {
-        sid: sid,
-        name: name,
-        age: age,
-        error: "Student with this ID already exists.",
-      });
-    }
-
-    // Add student if no error
-    pool.query(
-      "INSERT INTO student (sid, name, age) VALUES (?, ?, ?)",
-      [sid, name, age],
-      (err, results) => {
-        if (err) {
-          return res.render("add-student", {
-            sid: sid,
-            name: name,
-            age: age,
-            error: "Failed to add student. Please try again.",
-          });
-        }
-        res.redirect("/students");
-      }
-    );
+    
+    // If student is added successfully, redirect to students list
+    res.redirect('/students');
   });
 });
 
