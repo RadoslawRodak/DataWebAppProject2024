@@ -1,5 +1,5 @@
 const express = require("express");
-const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData} = require("./mysql"); // Import the functions from mysql.js
+const {  getStudents,  getStudentBySid,  updateStudent,  addStudent,  getGradesData} = require("./mysql"); // Import the functions from mysql.js
 const app = express();
 const bodyParser = require("body-parser");
 const port = 3004;
@@ -48,18 +48,13 @@ app.get("/students", (req, res) => {
 // Route to display the update form for a specific student
 app.get("/students/edit/:sid", (req, res) => {
   const sid = req.params.sid;
-  getStudentBySid(sid)
-    .then((student) => {
-      if (student) {
-        res.render("update-student", { student, errors: [] });
-      } else {
-        res.status(404).send("Student not found");
-      }
-    })
-    .catch((err) => {
-      console.log("Error fetching student:", err);
-      res.status(500).send("Internal Server Error");
-    });
+  getStudentBySid(sid).then((student) => {
+    if (student) {
+      res.render("update-student", { student, errors: [] });
+    } else {
+      res.status(404).send("Student not found");
+    }
+  });
 });
 
 // Route to handle the form submission and update the student
@@ -85,20 +80,18 @@ app.post("/students/edit/:sid", (req, res) => {
   }
 
   // If validation passes, update the student in the database
-  updateStudent(sid, { name, age })
-    .then(() => {
-      res.redirect("/students"); // Redirect to the students list after update
-    })
-    .catch((err) => res.status(500).send("Error updating student details"));
+  updateStudent(sid, { name, age }).then(() => {
+    res.redirect("/students"); // Redirect to the students list after update
+  });
 });
 
 // Route to render the Add Student form (GET)
 app.get("/students/add", (req, res) => {
-  res.render("add-student", {
-    sid: "", // Empty string for SID for new student
-    name: "", // Empty string for name
-    age: "", // Empty string for age
-    errors: [], // Empty error initially
+  res.render("add-student", { // empty strings for Add Student info
+    sid: "", 
+    name: "", 
+    age: "", 
+    errors: [],
   });
 });
 
@@ -144,14 +137,9 @@ app.post("/students/add", async (req, res) => {
 });
 
 app.get("/grades", (req, res) => {
-  getGradesData()
-    .then((grades) => {
-      res.render("grades", { grades }); // Pass the grades data to the template
-    })
-    .catch((err) => {
-      console.error("Error fetching grades data:", err);
-      res.status(500).send("Error fetching grades data.");
-    });
+  getGradesData().then((grades) => {
+    res.render("grades", { grades }); // Pass the grades data to the template
+  });
 });
 
 // Start the Express server
