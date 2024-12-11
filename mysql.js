@@ -128,17 +128,6 @@ const deleteLecturerFromMySQL = (lecturerId) => {
   });
 };
 
-const getLecturers = () => {
-  return new Promise((resolve, reject) => {
-    db.query("SELECT * FROM lecturer", (err, results) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-};
 
 // Export functions for use in other parts of the app
 module.exports = {
@@ -149,5 +138,5 @@ module.exports = {
   getGradesData,
   getModulesByLecturerId,
   deleteLecturerFromMySQL,
-  getLecturers
+ 
 };
