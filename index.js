@@ -48,23 +48,24 @@ app.get('/students', (req, res) => {
 
 
 // Route to display the update form for a specific student
-app.get('/update-student/:sid', (req, res) => {
+app.get('/students/edit/:sid', (req, res) => {
     const sid = req.params.sid;
-    getStudentBySid(sid) // Fetch student by sid
-      .then((student) => {
-        if (!student) {
-          return res.status(404).send('Student not found');
-        }
-        res.render('update-student', { student, errors: [] });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).send('Error fetching student details.');
-      });
-  });
+    getStudentBySid(sid)
+        .then(student => {
+            if (student) {
+                res.render('update-student', { student, errors: [] });
+            } else {
+                res.status(404).send('Student not found');
+            }
+        })
+        .catch(err => {
+            console.log('Error fetching student:', err);
+            res.status(500).send('Internal Server Error');
+        });
+});
   
   // Route to handle the form submission and update the student
-  app.post('/update-student/:sid', (req, res) => {
+  app.post('/students/edit/:sid', (req, res) => {
     const sid = req.params.sid;  // Get the SID from the URL
     const { name, age } = req.body;  // Get the new name and age from the form input
   

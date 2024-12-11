@@ -9,7 +9,6 @@
   </style>
 </head>
 <body>
-  <!-- Home Link at the top -->
   <div class="home-link">
     <a href="/">Home</a>
   </div>
@@ -27,9 +26,8 @@
     </div>
   <% } %>
 
-  <!-- Wrapping everything in a div to make it vertical -->
   <div class="container">
-    <form action="/update-student/<%= student.sid %>" method="POST">
+    <form action="/students/edit/<%= student.sid %>" method="POST">
       <div>
         <label for="sid">Student ID</label>
         <input type="text" id="sid" name="sid" value="<%= student.sid %>" disabled>

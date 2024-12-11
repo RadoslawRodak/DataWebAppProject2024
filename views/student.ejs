@@ -58,7 +58,7 @@
         <th>Student ID</th>
         <th>Name</th>
         <th>Age</th>
-        <th>Actions</th> <!-- Added actions column for the update link -->
+        <th>Actions</th> 
       </tr>
     </thead>
     <tbody>
@@ -67,7 +67,7 @@
           <td><%= student.sid %></td>
           <td><%= student.name %></td>
           <td><%= student.age %></td>
-          <td><a href="/update-student/<%= student.sid %>">Update</a></td> <!-- Update link -->
+          <td><a href="/students/edit/<%= student.sid %>">Update</a></td> <!-- Update link -->
         </tr>
       <% }); %>
     </tbody>

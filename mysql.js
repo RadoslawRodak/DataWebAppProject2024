@@ -5,7 +5,7 @@ var pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: 'root',
-    database: 'proj2024Mysql'  // Your MySQL database name
+    database: 'proj2024Mysql' 
 });
 
 var getStudents = function () {
@@ -22,7 +22,7 @@ var getStudents = function () {
 // Function to get a specific student by sid
 const getStudentBySid = (sid) => {
     return new Promise((resolve, reject) => {
-      pool.query('SELECT * FROM student WHERE sid = ?', [sid], (err, results) => { // Use 'sid' for student ID
+      pool.query('SELECT * FROM student WHERE sid = ?', [sid], (err, results) => { 
         if (err) reject(err);
         else resolve(results[0]); // Only return the first (and only) result
       });
@@ -34,7 +34,7 @@ const getStudentBySid = (sid) => {
     return new Promise((resolve, reject) => {
       const { name, age } = updatedData;
       pool.query(
-        'UPDATE student SET name = ?, age = ? WHERE sid = ?', // Ensure 'student' table and 'sid' column
+        'UPDATE student SET name = ?, age = ? WHERE sid = ?',
         [name, age, sid],
         (err, results) => {
           if (err) reject(err);
