@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Student</title>
+</head>
+<body>
+  <nav>
+    <a href="/">Home</a>
+  </nav>
+
+  <div>
+    <h1>Add Student</h1>
+    <form action="/students/add" method="POST">
+      <!-- Show error message if any -->
+      <% if (error) { %>
+        <p style="color:red;"><%= error %></p>
+      <% } %>
+
+      <label for="sid">Student ID:</label>
+      <input type="text" id="sid" name="sid" value="<%= sid %>"><br><br>
+
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" value="<%= name %>"><br><br>
+
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" value="<%= age %>"><br><br>
+
+      <button type="submit">Add Student</button>
+    </form>
+  </div>
+</body>
+</html>
