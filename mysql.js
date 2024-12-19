@@ -9,7 +9,6 @@ const pool = mysql.createPool({
   database: "proj2024Mysql",
 });
 
-
 // Function to get all students
 const getStudents = function () {
   return new Promise((resolve, reject) => {
@@ -101,21 +100,22 @@ const getGradesData = () => {
   });
 };
 
-
-
-
-// Function to delete lecturer from MySQL by ID
-const deleteLecturerFromMySQL = (lecturerId) => {
+const lecturerExists = function (lec_id) {
   return new Promise((resolve, reject) => {
-    pool.query("DELETE FROM lecturer WHERE id = ?", [lecturerId], (err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);  // Resolving with the result of the deletion
+    pool.query(
+    "SELECT * FROM module WHERE lecturer = ?",
+      [lec_id],
+      (err, results) => {
+        if (err) {
+          reject(err);
+        } else {        
+          resolve(results);
+        }
       }
-    });
+    );
   });
 };
+
 
 
 // Export functions for use in other parts of the app
@@ -125,6 +125,5 @@ module.exports = {
   addStudent,
   updateStudent,
   getGradesData,
-  deleteLecturerFromMySQL,
- 
+  lecturerExists
 };

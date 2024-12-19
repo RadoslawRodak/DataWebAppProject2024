@@ -24,26 +24,15 @@ const getLecturers = () => {
     return db.collection("lecturers").find({}).toArray(); // Fetch all lecturers
   };
 
-// Function to delete a lecturer from MongoDB by ID
-const deleteLecturerById = async (lecturerId) => {
-    if (!db) {
-      console.error("MongoDB is not connected.");
-      return;
+  var deleteLecturers = function(lecturerId) {
+    return new Promise((resolve, reject) => {
+    coll.deleteOne({_id:lecturerId})
+    .then((documents) => {
+    resolve(documents)
+    })
+    .catch((error) => {
+    reject(error)
+    })
+    })
     }
-
-    const lecturersCollection = db.collection("lecturers"); // Use existing connection
-
-    try {
-      // Delete lecturer by ID
-      const result = await lecturersCollection.deleteOne({ _id: lecturerId });
-      if (result.deletedCount === 0) {
-        throw new Error("Lecturer not found or already deleted");
-      }
-      console.log("Lecturer deleted successfully");
-    } catch (err) {
-      console.error("Error deleting lecturer from MongoDB:", err);
-      throw err; // Propagate error to handle it elsewhere if needed
-    }
-};
-
-module.exports = { getLecturers, deleteLecturerById };
+module.exports = { getLecturers, deleteLecturers};

@@ -1,6 +1,6 @@
 const express = require("express");
-const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData } = require("./mysql");
-const { getLecturers, deleteLecturerById } = require("./mongodb"); // Import MongoDB functions
+const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData, lecturerExists } = require("./mysql");
+const { getLecturers, deleteLecturers } = require("./mongodb"); // Import MongoDB functions
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -35,52 +35,6 @@ app.get("/", (req, res) => {
   `);
 });
 
-// Route to display lecturers
-app.get("/lecturers", async (req, res) => {
-  try {
-    // Fetch lecturers from MongoDB
-    const lecturers = await getLecturers();
-    console.log("Lecturers fetched from MongoDB:", lecturers);  // Debugging output
-
-    if (lecturers && lecturers.length > 0) {
-      res.render("lecturers", { lecturers }); // Pass lecturers to the view
-    } else {
-      res.render("lecturers", { lecturers: [], errorMessage: "No lecturers found." });
-    }
-  } catch (error) {
-    console.error("Error fetching lecturers:", error);
-    res.status(500).send("Error fetching lecturers");
-  }
-});
-
-// Route to handle lecturer deletion
-app.get("/lecturers/delete/:id", async (req, res) => {
-  const lecturerId = req.params.id;
-  
-  // Fetch lecturer by ID (assuming you have a way to get lecturer data)
-  try {
-    const lecturer = await getLecturerById(lecturerId);
-    if (!lecturer) {
-      return res.status(404).send("Lecturer not found.");
-    }
-    
-    // Check if lecturer is teaching any modules
-    if (lecturer.teachingModules && lecturer.teachingModules.length > 0) {
-      // If the lecturer is teaching, show an error message
-      return res.render("lecturer-delete", {
-        lecturer,
-        errorMessage: `You can't delete this lecturer as they are teaching in: ${lecturer.teachingModules.join(", ")}`,
-      });
-    }
-
-    // Proceed with deletion if lecturer can be deleted
-    await deleteLecturerById(lecturerId);
-    return res.redirect("/lecturers"); // Redirect to the lecturers list page after deletion
-  } catch (err) {
-    console.error("Error deleting lecturer:", err);
-    res.status(500).send("An error occurred while deleting the lecturer.");
-  }
-});
 // Route to display students
 app.get("/students", (req, res) => {
   getStudents()
@@ -170,6 +124,50 @@ app.get("/grades", (req, res) => {
   getGradesData().then((grades) => {
     res.render("grades", { grades });
   });
+});
+
+// Route to display lecturers
+app.get("/lecturers", async (req, res) => {
+  try {
+    // Fetch lecturers from MongoDB
+    const lecturers = await getLecturers();
+    console.log("Lecturers fetched from MongoDB:", lecturers);  // Debugging output
+
+    if (lecturers && lecturers.length > 0) {
+      res.render("lecturers", { lecturers }); // Pass lecturers to the view
+    } else {
+      res.render("lecturers", { lecturers: [], errorMessage: "No lecturers found." });
+    }
+  } catch (error) {
+    console.error("Error fetching lecturers:", error);
+    res.status(500).send("Error fetching lecturers");
+  }
+});
+
+// Route to handle lecturer deletion
+app.get("/lecturers/delete/:id", async (req, res) => {
+  console.log("Enter delete function");
+  const lecturerId = req.params.id;
+  console.log("Lecturer ID:", lecturerId);
+
+  try {
+    // Fetch lecturer by ID
+    const lecturer = await lecturerExists(lecturerId);
+    console.log("Lecturer Exists:", lecturer);
+
+    if (lecturer.length > 0) {
+      // Delete lecturer if they exist
+      await db.deleteLecturers(lecturerId);
+      res.redirect("/lecturers");
+    } else {
+      // Lecturer not found
+      res.status(404).send("Lecturer not found");
+    }
+  } catch (error) {
+    // Handle errors
+    console.error("Error:", error);
+    res.status(500).send("An error occurred");
+  }
 });
 
 // Start the server
