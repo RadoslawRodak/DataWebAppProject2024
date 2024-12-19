@@ -101,19 +101,8 @@ const getGradesData = () => {
   });
 };
 
-// Function to get all lecturers
-// Function to get modules by lecturerId
-const getModulesByLecturerId = (lecturerId) => {
-  return new Promise((resolve, reject) => {
-    pool.query("SELECT * FROM module WHERE lecturer = ?", [lecturerId], (err, results) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(results);  // Resolving with modules the lecturer is teaching
-      }
-    });
-  });
-};
+
+
 
 // Function to delete lecturer from MySQL by ID
 const deleteLecturerFromMySQL = (lecturerId) => {
@@ -136,7 +125,6 @@ module.exports = {
   addStudent,
   updateStudent,
   getGradesData,
-  getModulesByLecturerId,
   deleteLecturerFromMySQL,
  
 };

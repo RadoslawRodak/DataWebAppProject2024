@@ -1,5 +1,5 @@
 const express = require("express");
-const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData, getModulesByLecturerId } = require("./mysql");
+const { getStudents, getStudentBySid, updateStudent, addStudent, getGradesData } = require("./mysql");
 const { getLecturers, deleteLecturerById } = require("./mongodb"); // Import MongoDB functions
 const bodyParser = require("body-parser");
 
@@ -56,29 +56,31 @@ app.get("/lecturers", async (req, res) => {
 // Route to handle lecturer deletion
 app.get("/lecturers/delete/:id", async (req, res) => {
   const lecturerId = req.params.id;
-
+  
+  // Fetch lecturer by ID (assuming you have a way to get lecturer data)
   try {
-    // Check if the lecturer is teaching any modules
-    const modules = await getModulesByLecturerId(lecturerId);
-
-    if (modules.length > 0) {
-      // If the lecturer is teaching modules, prevent deletion
-      const moduleNames = modules.map(module => module.name).join(", ");
-      res.render("lecturers", {
-        lecturers: await getLecturers(),
-        errorMessage: `This lecturer is teaching the following module(s): ${moduleNames}. Cannot delete lecturer.`
-      });
-    } else {
-      // If no modules are found, proceed with deletion
-      await deleteLecturerById(lecturerId);
-      res.redirect("/lecturers");
+    const lecturer = await getLecturerById(lecturerId);
+    if (!lecturer) {
+      return res.status(404).send("Lecturer not found.");
     }
-  } catch (error) {
-    console.error("Error handling deletion:", error);
-    res.status(500).send("Error handling deletion");
+    
+    // Check if lecturer is teaching any modules
+    if (lecturer.teachingModules && lecturer.teachingModules.length > 0) {
+      // If the lecturer is teaching, show an error message
+      return res.render("lecturer-delete", {
+        lecturer,
+        errorMessage: `You can't delete this lecturer as they are teaching in: ${lecturer.teachingModules.join(", ")}`,
+      });
+    }
+
+    // Proceed with deletion if lecturer can be deleted
+    await deleteLecturerById(lecturerId);
+    return res.redirect("/lecturers"); // Redirect to the lecturers list page after deletion
+  } catch (err) {
+    console.error("Error deleting lecturer:", err);
+    res.status(500).send("An error occurred while deleting the lecturer.");
   }
 });
-
 // Route to display students
 app.get("/students", (req, res) => {
   getStudents()
